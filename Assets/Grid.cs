@@ -27,7 +27,7 @@ public class Grid : MonoBehaviour
 
     private Vector2Int _playerPos = new Vector2Int(0, 1);
     private float _timer = 0;
-    public float deltaTime = .3f;
+    private const float DeltaTime = Settings.DeltaTime;
 
     private int _xInput;
     private int _yInput;
@@ -87,7 +87,7 @@ public class Grid : MonoBehaviour
         if (_yInput == 0)
             _yInput = NonZero(Input.GetAxis("Vertical"));
         
-        if (_timer < deltaTime) return;
+        if (_timer < DeltaTime) return;
         
         DeltaUpdate(_xInput, _yInput);
         
