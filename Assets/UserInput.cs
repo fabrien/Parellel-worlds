@@ -3,25 +3,24 @@ using System.IO.MemoryMappedFiles;
 using UnityEngine;
 using UnityEngine.WSA;
 
-public class UserInput : MonoBehaviour
+public static class UserInput
 {
-    public Vector2Int input;
+    public static Vector2Int Input;
     
-    public void Update()
+    public static void Update()
     {
         var horizontal = Horizontal.None;
         var vertical = Vertical.None;
 
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        if (UnityEngine.Input.GetKeyDown(KeyCode.DownArrow))
             vertical = Vertical.Down;
-        else if (Input.GetKeyDown(KeyCode.UpArrow))
+        else if (UnityEngine.Input.GetKeyDown(KeyCode.UpArrow))
             vertical = Vertical.Up;
-        if (Input.GetKeyDown(KeyCode.RightArrow))
+        if (UnityEngine.Input.GetKeyDown(KeyCode.RightArrow))
             horizontal = Horizontal.Right;
-        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        else if (UnityEngine.Input.GetKeyDown(KeyCode.LeftArrow))
             horizontal = Horizontal.Left;
-        
-        input = InputToVector(horizontal, vertical);
+        Input = InputToVector(horizontal, vertical);
     }
 
     private static Vector2Int InputToVector(Horizontal horizontal, Vertical vertical)

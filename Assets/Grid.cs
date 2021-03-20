@@ -14,9 +14,8 @@ public class Grid : MonoBehaviour
     public Vector2Int dimensions;
 
     private Cell[,] _cells;
-    private Sprite sprite;
     private Vector2 _cellSize;
-    private CellType[,] types =
+    private readonly CellType[,] types =
     {
         {CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty},
         {CellType.Player, CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty},
@@ -36,7 +35,6 @@ public class Grid : MonoBehaviour
     {
         var go = gameObject;
         _cells = new Cell[dimensions.x, dimensions.y];
-        sprite = go.GetComponent<SpriteRenderer>().sprite;
         Vector2 scale =  go.transform.localScale;
         _cellSize = scale / dimensions;
         for (var x = 0; x < dimensions.x ; ++x) {
@@ -80,36 +78,36 @@ public class Grid : MonoBehaviour
 
     private void Update()
     {
+        UserInput.Update();
         _timer += Time.deltaTime;
-        
         if (_xInput == 0)
-            _xInput = NonZero(Input.GetAxis("Horizontal"));
+            _xInput = UserInput.Input.x;
         if (_yInput == 0)
-            _yInput = NonZero(Input.GetAxis("Vertical"));
+            _yInput = UserInput.Input.y;
         
         if (_timer < DeltaTime) return;
         
-        DeltaUpdate(_xInput, _yInput);
+        DeltaUpdate(new Vector2Int(_xInput, _yInput));
         
         _timer = 0;
         _xInput = 0;
         _yInput = 0;
     }
 
-    private void DeltaUpdate(int x, int y)
+    private void DeltaUpdate(Vector2Int userInput)
     {
-        if (x != 0 || y != 0)
-            MovePlayer(new Vector2Int(x, y));
+        if (userInput.x != 0 || userInput.y != 0)
+            MovePlayer(userInput);
     }
     
-    private static int NonZero(float f)
-    {
-        if (f > 0)
-            return 1;
-        if (f < 0)
-            return -1;
-        return 0;
-    }
+    // private static int NonZero(float f)
+    // {
+    //     if (f > 0)
+    //         return 1;
+    //     if (f < 0)
+    //         return -1;
+    //     return 0;
+    // }
 }
 
 internal class Cell
@@ -123,7 +121,7 @@ internal class Cell
     public Cell(Vector2 position, CellType cellType)
     {
         _position = position;
-        this.CellType = cellType;
+        CellType = cellType;
         _cell = new GameObject();
         _cell.transform.position = _position;
         var spriteR = _cell.AddComponent<SpriteRenderer>();
