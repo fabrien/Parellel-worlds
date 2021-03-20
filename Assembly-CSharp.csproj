@@ -60,6 +60,7 @@
      <Compile Include="Assets\HorizontalAction\Assets\Gameplay\Scripts\AIController.cs" />
      <Compile Include="Assets\Settings.cs" />
      <Compile Include="Assets\UserInput.cs" />
+     <Compile Include="Assets\Manager.cs" />
      <None Include="Assets\HorizontalAction\Assets\SampleAssets\SimpleFX\Materials\UnlitVertexColour_Alpha.shader" />
      <None Include="Assets\HorizontalAction\ProjectSettings\ProjectVersion.txt" />
  <Reference Include="UnityEngine">

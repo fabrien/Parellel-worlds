@@ -12,10 +12,11 @@ using Object = UnityEngine.Object;
 public class Grid : MonoBehaviour
 {
     public Vector2Int dimensions;
-
+    public Manager manager;
+    
     private Cell[,] _cells;
     private Vector2 _cellSize;
-    private readonly CellType[,] types =
+    private readonly CellType[,] _types =
     {
         {CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty},
         {CellType.Player, CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty},
@@ -31,15 +32,16 @@ public class Grid : MonoBehaviour
     private int _xInput;
     private int _yInput;
 
-    void Start()
+    private void Start()
     {
         var go = gameObject;
+        
         _cells = new Cell[dimensions.x, dimensions.y];
         Vector2 scale =  go.transform.localScale;
         _cellSize = scale / dimensions;
         for (var x = 0; x < dimensions.x ; ++x) {
             for (var y = 0; y < dimensions.y; ++y) {
-                _cells[x, y] = new Cell(CoordToPos(x, y), types[y, x]);
+                _cells[x, y] = new Cell(CoordToPos(x, y), _types[y, x]);
             }
         }
     }
@@ -61,10 +63,7 @@ public class Grid : MonoBehaviour
         var (x, y) = (_playerPos.x, _playerPos.y);
         _playerPos += direction;
         var (newX, newY) = (_playerPos.x, _playerPos.y);
-        if (OutOfBounds(_playerPos) || _cells[newX, newY].CellType == CellType.Obstacle) {
-            _playerPos -= direction;
-            return;
-        }
+
         _cells[x, y].Destroy();
         _cells[x, y] = new Cell(CoordToPos(x, y), CellType.Empty);
         _cells[newX, newY].Destroy();
@@ -76,28 +75,17 @@ public class Grid : MonoBehaviour
         return 0 > pos.x || pos.x >= dimensions.x || 0 > pos.y || pos.y >= dimensions.y;
     }
 
-    private void Update()
+    public bool WouldCollide(Vector2Int direction)
     {
-        UserInput.Update();
-        _timer += Time.deltaTime;
-        if (_xInput == 0)
-            _xInput = UserInput.Input.x;
-        if (_yInput == 0)
-            _yInput = UserInput.Input.y;
-        
-        if (_timer < DeltaTime) return;
-        
-        DeltaUpdate(new Vector2Int(_xInput, _yInput));
-        
-        _timer = 0;
-        _xInput = 0;
-        _yInput = 0;
+        var newPos = _playerPos + direction;
+        return OutOfBounds(newPos) || _cells[newPos.x, newPos.y].CellType == CellType.Obstacle;
     }
-
-    private void DeltaUpdate(Vector2Int userInput)
+    
+    public void DeltaUpdate(Vector2Int direction)
     {
-        if (userInput.x != 0 || userInput.y != 0)
-            MovePlayer(userInput);
+        if (direction.x == 0 && direction.y == 0) return;
+        if (manager.allowMovement)
+            MovePlayer(direction);
     }
     
     // private static int NonZero(float f)
