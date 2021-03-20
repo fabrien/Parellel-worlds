@@ -1,12 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using UnityEditor;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 public class Grid : MonoBehaviour
@@ -16,27 +9,21 @@ public class Grid : MonoBehaviour
     
     private Cell[,] _cells;
     private Vector2 _cellSize;
-    private readonly CellType[,] _types =
-    {
-        {CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty},
-        {CellType.Player, CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty},
-        {CellType.Empty, CellType.Empty, CellType.Empty, CellType.Obstacle, CellType.Empty},
-        {CellType.Empty, CellType.Obstacle, CellType.Empty, CellType.Empty, CellType.Empty},
-        {CellType.Empty, CellType.Empty, CellType.Door, CellType.Empty, CellType.Empty},
-    };
 
-    private Vector2Int _playerPos = new Vector2Int(0, 1);
-    private float _timer = 0;
-    private const float DeltaTime = Settings.DeltaTime;
+    public int worldTypeIdx;
 
-    private int _xInput;
-    private int _yInput;
+    private CellType[,] _types;
+
+    private Vector2Int _playerPos;
 
     private void Start()
     {
         var go = gameObject;
         
         _cells = new Cell[dimensions.x, dimensions.y];
+        _types = Settings.GetWorld(worldTypeIdx);
+        _playerPos = Settings.GetPlayerPosFromIndex(worldTypeIdx);
+        
         Vector2 scale =  go.transform.localScale;
         _cellSize = scale / dimensions;
         for (var x = 0; x < dimensions.x ; ++x) {
@@ -61,6 +48,7 @@ public class Grid : MonoBehaviour
     private void MovePlayer(Vector2Int direction)
     {
         var (x, y) = (_playerPos.x, _playerPos.y);
+        
         _playerPos += direction;
         var (newX, newY) = (_playerPos.x, _playerPos.y);
 
@@ -87,15 +75,6 @@ public class Grid : MonoBehaviour
         if (manager.allowMovement)
             MovePlayer(direction);
     }
-    
-    // private static int NonZero(float f)
-    // {
-    //     if (f > 0)
-    //         return 1;
-    //     if (f < 0)
-    //         return -1;
-    //     return 0;
-    // }
 }
 
 internal class Cell
@@ -103,15 +82,13 @@ internal class Cell
     public readonly CellType CellType;
     private static readonly Sprite CellSprite =  UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
     
-    private GameObject _cell;
-    private Vector2 _position;
-    
+    private readonly GameObject _cell;
+
     public Cell(Vector2 position, CellType cellType)
     {
-        _position = position;
         CellType = cellType;
         _cell = new GameObject();
-        _cell.transform.position = _position;
+        _cell.transform.position = position;
         var spriteR = _cell.AddComponent<SpriteRenderer>();
         spriteR.sprite = CellSprite;
         spriteR.color = TypeToColor(this.CellType);
@@ -142,14 +119,6 @@ internal class Cell
     }
 }
 
-internal enum CellType
-{
-    Empty,
-    Player,
-    Key,
-    Door,
-    Obstacle
-}
 //
 // string ToString(CellType ct)
 // {
