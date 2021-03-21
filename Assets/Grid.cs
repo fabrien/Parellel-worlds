@@ -4,7 +4,7 @@ using Object = UnityEngine.Object;
 
 public class Grid : MonoBehaviour
 {
-    public Vector2Int dimensions;
+    private Vector2Int _dimensions;
     public Manager manager;
     
     private Cell[,] _cells;
@@ -22,14 +22,15 @@ public class Grid : MonoBehaviour
     {
         var go = gameObject;
         
-        _cells = new Cell[dimensions.x, dimensions.y];
         _types = Settings.GetWorld(worldTypeIdx);
+        _dimensions = new Vector2Int(_types.GetLength(1), _types.GetLength(0));
+        _cells = new Cell[_dimensions.x, _dimensions.y];
         _playerPos = Settings.GetPlayerPosFromIndex(worldTypeIdx);
         
         Vector2 scale =  go.transform.localScale;
-        _cellSize = scale / dimensions;
-        for (var x = 0; x < dimensions.x ; ++x) {
-            for (var y = 0; y < dimensions.y; ++y) {
+        _cellSize = scale / _dimensions;
+        for (var x = 0; x < _dimensions.x ; ++x) {
+            for (var y = 0; y < _dimensions.y; ++y) {
                 _cells[x, y] = new Cell(CoordToPos(x, y), _types[y, x]);
             }
         }
@@ -66,7 +67,7 @@ public class Grid : MonoBehaviour
 
     private bool OutOfBounds(Vector2Int pos)
     {
-        return 0 > pos.x || pos.x >= dimensions.x || 0 > pos.y || pos.y >= dimensions.y;
+        return 0 > pos.x || pos.x >= _dimensions.x || 0 > pos.y || pos.y >= _dimensions.y;
     }
 
     public bool WouldCollide(Vector2Int direction)
