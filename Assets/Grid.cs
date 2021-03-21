@@ -98,8 +98,8 @@ public class Grid : MonoBehaviour
 internal class Cell
 {
     public readonly CellType cellType;
-    private static readonly Sprite CellSprite =  UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
-    
+    // private static readonly Sprite CellSprite =  UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
+
     private readonly GameObject _cell;
     private readonly SpriteRenderer _renderer;
 
@@ -109,13 +109,26 @@ internal class Cell
         _cell = new GameObject();
         _cell.transform.position = position;
         _renderer = _cell.AddComponent<SpriteRenderer>();
-        _renderer.sprite = CellSprite;
-        _renderer.color = TypeToColor(this.cellType);
+        _renderer.sprite = chooseSprite(cellType);
+        Debug.Log(_renderer.sprite);
         _renderer.renderingLayerMask = 1;
         if (!visible) _renderer.enabled = false;
     }
 
-    private static Color TypeToColor(CellType ct)
+    private static Sprite chooseSprite (CellType ct)
+    {
+        return ct switch
+        {
+            CellType.Door => Resources.Load<Sprite>("Sprites/Door"),
+            CellType.Key => Resources.Load<Sprite>("Sprites/key"),
+            CellType.Empty => Resources.Load<Sprite>("Sprites/path"),
+            CellType.Obstacle => Resources.Load<Sprite>("Sprites/obstacle"),
+            CellType.Player => Resources.Load<Sprite>("Sprites/player"),
+            _ => throw new ArgumentOutOfRangeException(nameof(ct), ct, "null")
+        };
+    }
+
+ /*   private static Color TypeToColor(CellType ct)
     {
         return ct switch
         {
@@ -126,7 +139,7 @@ internal class Cell
             CellType.Player => Color.white,
             _ => throw new ArgumentOutOfRangeException(nameof(ct), ct, "null")
         };
-    }
+    }*/
 
     public void VisibilityTrigger()
     {
