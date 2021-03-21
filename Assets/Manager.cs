@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Manager : MonoBehaviour
 {
@@ -98,5 +99,6 @@ public class Manager : MonoBehaviour
         _invisibleGrid.TriggerVisibility();
         _visibleGrid = null;
         _invisibleGrid = null;
+        SceneManager.LoadScene(1);
     }
 }
