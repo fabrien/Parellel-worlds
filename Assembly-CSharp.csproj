@@ -62,6 +62,7 @@
      <Compile Include="Assets\HorizontalAction\Assets\Gameplay\Scripts\PlayerController.cs" />
      <Compile Include="Assets\Manager.cs" />
      <Compile Include="Assets\HorizontalAction\Assets\Gameplay\Scripts\AIController.cs" />
+     <Compile Include="Assets\MapCover.cs" />
      <None Include="Assets\HorizontalAction\Assets\SampleAssets\SimpleFX\Materials\UnlitVertexColour_Alpha.shader" />
      <None Include="Assets\HorizontalAction\ProjectSettings\ProjectVersion.txt" />
  <Reference Include="UnityEngine">
