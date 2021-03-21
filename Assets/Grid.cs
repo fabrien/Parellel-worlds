@@ -16,7 +16,7 @@ public class Grid : MonoBehaviour
 
     private Vector2Int _playerPos;
 
-    private bool _visible = true;
+    private bool _isVisible = true;
 
     private void Start()
     {
@@ -54,10 +54,14 @@ public class Grid : MonoBehaviour
         _playerPos += direction;
         var (newX, newY) = (_playerPos.x, _playerPos.y);
 
+        if (_cells[newX, newY].cellType == CellType.Key)
+            manager.doorLocked = false;
+        if (_cells[newX, newY].cellType == CellType.Door && !manager.doorLocked)
+            manager.CompleteLevel();
         _cells[x, y].Destroy();
-        _cells[x, y] = new Cell(CoordToPos(x, y), CellType.Empty, _visible);
+        _cells[x, y] = new Cell(CoordToPos(x, y), CellType.Empty, _isVisible);
         _cells[newX, newY].Destroy();
-        _cells[newX, newY] = new Cell(CoordToPos(newX, newY), CellType.Player, _visible);
+        _cells[newX, newY] = new Cell(CoordToPos(newX, newY), CellType.Player, _isVisible);
     }
 
     private bool OutOfBounds(Vector2Int pos)
@@ -68,7 +72,10 @@ public class Grid : MonoBehaviour
     public bool WouldCollide(Vector2Int direction)
     {
         var newPos = _playerPos + direction;
-        return OutOfBounds(newPos) || _cells[newPos.x, newPos.y].CellType == CellType.Obstacle;
+        if (OutOfBounds(newPos))
+            return true;
+        var endCellType = _cells[newPos.x, newPos.y].cellType;
+        return endCellType == CellType.Obstacle || (endCellType == CellType.Door && manager.doorLocked);
     }
     
     public void DeltaUpdate(Vector2Int direction)
@@ -80,7 +87,7 @@ public class Grid : MonoBehaviour
 
     public void TriggerVisibility()
     {
-        _visible = !_visible;
+        _isVisible = !_isVisible;
         foreach (var cell in _cells) {
             cell.VisibilityTrigger();
         }
@@ -89,22 +96,22 @@ public class Grid : MonoBehaviour
 
 internal class Cell
 {
-    public readonly CellType CellType;
+    public readonly CellType cellType;
     private static readonly Sprite CellSprite =  UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
     
     private readonly GameObject _cell;
-    private SpriteRenderer renderer;
+    private readonly SpriteRenderer _renderer;
 
     public Cell(Vector2 position, CellType cellType, bool visible=true)
     {
-        CellType = cellType;
+        this.cellType = cellType;
         _cell = new GameObject();
         _cell.transform.position = position;
-        renderer = _cell.AddComponent<SpriteRenderer>();
-        renderer.sprite = CellSprite;
-        renderer.color = TypeToColor(this.CellType);
-        renderer.renderingLayerMask = 1;
-        if (!visible) renderer.enabled = false;
+        _renderer = _cell.AddComponent<SpriteRenderer>();
+        _renderer.sprite = CellSprite;
+        _renderer.color = TypeToColor(this.cellType);
+        _renderer.renderingLayerMask = 1;
+        if (!visible) _renderer.enabled = false;
     }
 
     private static Color TypeToColor(CellType ct)
@@ -122,7 +129,7 @@ internal class Cell
 
     public void VisibilityTrigger()
     {
-        renderer.enabled = !renderer.enabled;
+        _renderer.enabled = !_renderer.enabled;
     }
     
     ~Cell()

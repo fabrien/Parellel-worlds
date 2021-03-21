@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using UnityEngine;
 
 public class Manager : MonoBehaviour
@@ -22,6 +23,8 @@ public class Manager : MonoBehaviour
 
     private int _visibilityCount;
     public int visibilityTrigger = 3;
+
+    public bool doorLocked = true;
     
     // Start is called before the first frame update
     private void Start()
@@ -62,6 +65,9 @@ public class Manager : MonoBehaviour
         if (_visibilityCount >= visibilityTrigger) {
             _visibleGrid.TriggerVisibility();
             _invisibleGrid.TriggerVisibility();
+            var tmp = _visibleGrid;
+            _visibleGrid = _invisibleGrid;
+            _invisibleGrid = tmp;
             _visibilityCount = 0;
         }
     }
@@ -84,5 +90,13 @@ public class Manager : MonoBehaviour
     private bool AllowMovement(Vector2Int direction)
     {
         return !_grid1.WouldCollide(direction) && !_grid2.WouldCollide(direction);
+    }
+
+    public void CompleteLevel()
+    {
+        Debug.Log("YOU FINISHED THE LEVEL!");
+        _invisibleGrid.TriggerVisibility();
+        _visibleGrid = null;
+        _invisibleGrid = null;
     }
 }
