@@ -16,6 +16,8 @@ public class Grid : MonoBehaviour
 
     private Vector2Int _playerPos;
 
+    private bool _visible = true;
+
     private void Start()
     {
         var go = gameObject;
@@ -53,9 +55,9 @@ public class Grid : MonoBehaviour
         var (newX, newY) = (_playerPos.x, _playerPos.y);
 
         _cells[x, y].Destroy();
-        _cells[x, y] = new Cell(CoordToPos(x, y), CellType.Empty);
+        _cells[x, y] = new Cell(CoordToPos(x, y), CellType.Empty, _visible);
         _cells[newX, newY].Destroy();
-        _cells[newX, newY] = new Cell(CoordToPos(newX, newY), CellType.Player);
+        _cells[newX, newY] = new Cell(CoordToPos(newX, newY), CellType.Player, _visible);
     }
 
     private bool OutOfBounds(Vector2Int pos)
@@ -75,6 +77,14 @@ public class Grid : MonoBehaviour
         if (manager.allowMovement)
             MovePlayer(direction);
     }
+
+    public void TriggerVisibility()
+    {
+        _visible = !_visible;
+        foreach (var cell in _cells) {
+            cell.VisibilityTrigger();
+        }
+    }
 }
 
 internal class Cell
@@ -83,16 +93,18 @@ internal class Cell
     private static readonly Sprite CellSprite =  UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
     
     private readonly GameObject _cell;
+    private SpriteRenderer renderer;
 
-    public Cell(Vector2 position, CellType cellType)
+    public Cell(Vector2 position, CellType cellType, bool visible=true)
     {
         CellType = cellType;
         _cell = new GameObject();
         _cell.transform.position = position;
-        var spriteR = _cell.AddComponent<SpriteRenderer>();
-        spriteR.sprite = CellSprite;
-        spriteR.color = TypeToColor(this.CellType);
-        spriteR.renderingLayerMask = 1;
+        renderer = _cell.AddComponent<SpriteRenderer>();
+        renderer.sprite = CellSprite;
+        renderer.color = TypeToColor(this.CellType);
+        renderer.renderingLayerMask = 1;
+        if (!visible) renderer.enabled = false;
     }
 
     private static Color TypeToColor(CellType ct)
@@ -106,6 +118,11 @@ internal class Cell
             CellType.Player => Color.white,
             _ => throw new ArgumentOutOfRangeException(nameof(ct), ct, "null")
         };
+    }
+
+    public void VisibilityTrigger()
+    {
+        renderer.enabled = !renderer.enabled;
     }
     
     ~Cell()
