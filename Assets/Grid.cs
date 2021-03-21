@@ -1,47 +1,36 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Diagnostics;
-using UnityEditor;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
-using UnityEngine.UI;
-using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 
 public class Grid : MonoBehaviour
 {
     public Vector2Int dimensions;
-
+    public Manager manager;
+    
     private Cell[,] _cells;
-    private Sprite sprite;
     private Vector2 _cellSize;
-    private CellType[,] types =
-    {
-        {CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty},
-        {CellType.Player, CellType.Empty, CellType.Empty, CellType.Empty, CellType.Empty},
-        {CellType.Empty, CellType.Empty, CellType.Empty, CellType.Obstacle, CellType.Empty},
-        {CellType.Empty, CellType.Obstacle, CellType.Empty, CellType.Empty, CellType.Empty},
-        {CellType.Empty, CellType.Empty, CellType.Door, CellType.Empty, CellType.Empty},
-    };
 
-    private Vector2Int _playerPos = new Vector2Int(0, 1);
-    private float _timer = 0;
-    private const float DeltaTime = Settings.DeltaTime;
+    public int worldTypeIdx;
 
-    private int _xInput;
-    private int _yInput;
+    private CellType[,] _types;
 
-    void Start()
+    private Vector2Int _playerPos;
+
+    private bool _visible = true;
+
+    private void Start()
     {
         var go = gameObject;
+        
         _cells = new Cell[dimensions.x, dimensions.y];
-        sprite = go.GetComponent<SpriteRenderer>().sprite;
+        _types = Settings.GetWorld(worldTypeIdx);
+        _playerPos = Settings.GetPlayerPosFromIndex(worldTypeIdx);
+        
         Vector2 scale =  go.transform.localScale;
         _cellSize = scale / dimensions;
         for (var x = 0; x < dimensions.x ; ++x) {
             for (var y = 0; y < dimensions.y; ++y) {
-                _cells[x, y] = new Cell(CoordToPos(x, y), types[y, x]);
+                _cells[x, y] = new Cell(CoordToPos(x, y), _types[y, x]);
             }
         }
     }
@@ -61,16 +50,14 @@ public class Grid : MonoBehaviour
     private void MovePlayer(Vector2Int direction)
     {
         var (x, y) = (_playerPos.x, _playerPos.y);
+        
         _playerPos += direction;
         var (newX, newY) = (_playerPos.x, _playerPos.y);
-        if (OutOfBounds(_playerPos) || _cells[newX, newY].CellType == CellType.Obstacle) {
-            _playerPos -= direction;
-            return;
-        }
+
         _cells[x, y].Destroy();
-        _cells[x, y] = new Cell(CoordToPos(x, y), CellType.Empty);
+        _cells[x, y] = new Cell(CoordToPos(x, y), CellType.Empty, _visible);
         _cells[newX, newY].Destroy();
-        _cells[newX, newY] = new Cell(CoordToPos(newX, newY), CellType.Player);
+        _cells[newX, newY] = new Cell(CoordToPos(newX, newY), CellType.Player, _visible);
     }
 
     private bool OutOfBounds(Vector2Int pos)
@@ -78,37 +65,25 @@ public class Grid : MonoBehaviour
         return 0 > pos.x || pos.x >= dimensions.x || 0 > pos.y || pos.y >= dimensions.y;
     }
 
-    private void Update()
+    public bool WouldCollide(Vector2Int direction)
     {
-        _timer += Time.deltaTime;
-        
-        if (_xInput == 0)
-            _xInput = NonZero(Input.GetAxis("Horizontal"));
-        if (_yInput == 0)
-            _yInput = NonZero(Input.GetAxis("Vertical"));
-        
-        if (_timer < DeltaTime) return;
-        
-        DeltaUpdate(_xInput, _yInput);
-        
-        _timer = 0;
-        _xInput = 0;
-        _yInput = 0;
-    }
-
-    private void DeltaUpdate(int x, int y)
-    {
-        if (x != 0 || y != 0)
-            MovePlayer(new Vector2Int(x, y));
+        var newPos = _playerPos + direction;
+        return OutOfBounds(newPos) || _cells[newPos.x, newPos.y].CellType == CellType.Obstacle;
     }
     
-    private static int NonZero(float f)
+    public void DeltaUpdate(Vector2Int direction)
     {
-        if (f > 0)
-            return 1;
-        if (f < 0)
-            return -1;
-        return 0;
+        if (direction.x == 0 && direction.y == 0) return;
+        if (manager.allowMovement)
+            MovePlayer(direction);
+    }
+
+    public void TriggerVisibility()
+    {
+        _visible = !_visible;
+        foreach (var cell in _cells) {
+            cell.VisibilityTrigger();
+        }
     }
 }
 
@@ -117,19 +92,19 @@ internal class Cell
     public readonly CellType CellType;
     private static readonly Sprite CellSprite =  UnityEditor.AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
     
-    private GameObject _cell;
-    private Vector2 _position;
-    
-    public Cell(Vector2 position, CellType cellType)
+    private readonly GameObject _cell;
+    private SpriteRenderer renderer;
+
+    public Cell(Vector2 position, CellType cellType, bool visible=true)
     {
-        _position = position;
-        this.CellType = cellType;
+        CellType = cellType;
         _cell = new GameObject();
-        _cell.transform.position = _position;
-        var spriteR = _cell.AddComponent<SpriteRenderer>();
-        spriteR.sprite = CellSprite;
-        spriteR.color = TypeToColor(this.CellType);
-        spriteR.renderingLayerMask = 1;
+        _cell.transform.position = position;
+        renderer = _cell.AddComponent<SpriteRenderer>();
+        renderer.sprite = CellSprite;
+        renderer.color = TypeToColor(this.CellType);
+        renderer.renderingLayerMask = 1;
+        if (!visible) renderer.enabled = false;
     }
 
     private static Color TypeToColor(CellType ct)
@@ -144,6 +119,11 @@ internal class Cell
             _ => throw new ArgumentOutOfRangeException(nameof(ct), ct, "null")
         };
     }
+
+    public void VisibilityTrigger()
+    {
+        renderer.enabled = !renderer.enabled;
+    }
     
     ~Cell()
     {
@@ -156,14 +136,6 @@ internal class Cell
     }
 }
 
-internal enum CellType
-{
-    Empty,
-    Player,
-    Key,
-    Door,
-    Obstacle
-}
 //
 // string ToString(CellType ct)
 // {
