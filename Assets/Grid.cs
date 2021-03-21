@@ -17,10 +17,12 @@ public class Grid : MonoBehaviour
     private Vector2Int _playerPos;
 
     private bool _isVisible = true;
+    private SpriteRenderer _spriteRenderer;
 
     private void Start()
     {
         var go = gameObject;
+        _spriteRenderer = go.GetComponent<SpriteRenderer>();
         
         _types = Settings.GetWorld(worldTypeIdx);
         _dimensions = new Vector2Int(_types.GetLength(1), _types.GetLength(0));
@@ -38,9 +40,10 @@ public class Grid : MonoBehaviour
 
     private Vector2 CoordToPos(Vector2Int coord)
     {
-        // var pos = sprite.rect.position - sprite.rect.size / 2;
-        var pos = (Vector2)transform.position - new Vector2(4f, 4f);
-        return pos + coord * _cellSize;
+        var sprite = _spriteRenderer.sprite;
+        var pos = (Vector2)transform.position - (sprite.rect.size / sprite.pixelsPerUnit) * gameObject.transform.localScale / 2;
+        // var pos = (Vector2)transform.position - new Vector2(4f, 4f);
+        return pos + coord * _cellSize + _cellSize / 2;
     }
 
     private Vector2 CoordToPos(int x, int y)
@@ -110,7 +113,6 @@ internal class Cell
         _cell.transform.position = position;
         _renderer = _cell.AddComponent<SpriteRenderer>();
         _renderer.sprite = chooseSprite(cellType);
-        Debug.Log(_renderer.sprite);
         _renderer.renderingLayerMask = 1;
         if (!visible) _renderer.enabled = false;
     }
