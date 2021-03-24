@@ -22,7 +22,8 @@ public class Manager : MonoBehaviour
     public int visibilityTrigger = 3;
 
     public bool doorLocked = true;
-    
+    public AudioClip Walk;
+
     // Start is called before the first frame update
     private void Start()
     {

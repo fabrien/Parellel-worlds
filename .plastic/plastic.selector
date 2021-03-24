@@ -1,0 +1,4 @@
+repository "Parellel-worlds@ssl://zf2001@sh03-plasticscm.unity.cn:8787"
+  path "/"
+    smartbranch "/main/zf2001" 
+     

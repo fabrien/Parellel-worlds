@@ -18,6 +18,7 @@ public class Grid : MonoBehaviour
 
     private bool _isVisible = true;
     private SpriteRenderer _spriteRenderer;
+    public AudioClip Walk;
 
     private void Start()
     {
@@ -66,6 +67,7 @@ public class Grid : MonoBehaviour
         _cells[x, y] = new Cell(CoordToPos(x, y), CellType.Empty, _isVisible);
         _cells[newX, newY].Destroy();
         _cells[newX, newY] = new Cell(CoordToPos(newX, newY), CellType.Player, _isVisible);
+        AudioSource.PlayClipAtPoint(Walk, transform.position);
     }
 
     private bool OutOfBounds(Vector2Int pos)
