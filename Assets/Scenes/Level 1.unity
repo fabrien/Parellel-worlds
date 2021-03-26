@@ -633,9 +633,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: '01:00
-
-'
+  m_Text: 30
 --- !u!222 &691499744
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -658,6 +656,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   timeStart: 30
   textBox: {fileID: 691499743}
+  audioclip: {fileID: 8300000, guid: d3cc336f3bc85d0418ab859dcfab9fbe, type: 3}
 --- !u!1 &947194282
 GameObject:
   m_ObjectHideFlags: 0

@@ -6,10 +6,10 @@ using UnityEngine.SceneManagement;
 
 public class CountdownTmer : MonoBehaviour
 {
-    
+    private bool soundPlayed = false;
     public float timeStart = 30;
     public Text textBox;
-    public AudioSource audiosource;
+    public AudioClip audioclip;
     void Start()
     {
         textBox.text = timeStart.ToString();
@@ -25,9 +25,14 @@ public class CountdownTmer : MonoBehaviour
         }
         if (timeStart <= 0)
         {
-            audiosource.Play;
+            
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
             timeStart = 0;
+        }
+        if (timeStart <= 0.5 && !soundPlayed)
+        {
+            AudioSource.PlayClipAtPoint(audioclip, new Vector3(0, 0, 0));
+            soundPlayed = true;
         }
     }
     
