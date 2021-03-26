@@ -12,7 +12,7 @@ public class Manager : MonoBehaviour
     public Vector2Int direction;
 
     public float timer;
-    private int _xInput;
+    public int _xInput;
     private int _yInput;
     
     private Grid _visibleGrid;

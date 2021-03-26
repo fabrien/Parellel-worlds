@@ -33,7 +33,7 @@ public class Grid : MonoBehaviour
         _cellSize = scale / _dimensions;
         for (var x = 0; x < _dimensions.x ; ++x) {
             for (var y = 0; y < _dimensions.y; ++y) {
-                _cells[x, y] = new Cell(CoordToPos(x, y), _types[y, x]);
+                _cells[x, y] = new Cell(CoordToPos(x, y), _types[y, x], manager);
             }
         }
     }
@@ -63,9 +63,9 @@ public class Grid : MonoBehaviour
         if (_cells[newX, newY].cellType == CellType.Door && !manager.doorLocked)
             manager.CompleteLevel();
         _cells[x, y].Destroy();
-        _cells[x, y] = new Cell(CoordToPos(x, y), CellType.Empty, _isVisible);
+        _cells[x, y] = new Cell(CoordToPos(x, y), CellType.Empty, manager, _isVisible);
         _cells[newX, newY].Destroy();
-        _cells[newX, newY] = new Cell(CoordToPos(newX, newY), CellType.Player, _isVisible);
+        _cells[newX, newY] = new Cell(CoordToPos(newX, newY), CellType.Player, manager, _isVisible);
     }
 
     private bool OutOfBounds(Vector2Int pos)
@@ -105,9 +105,11 @@ internal class Cell
 
     private readonly GameObject _cell;
     private readonly SpriteRenderer _renderer;
+    private Manager manager;
 
-    public Cell(Vector2 position, CellType cellType, bool visible=true)
+    public Cell(Vector2 position, CellType cellType, Manager manager, bool visible=true)
     {
+        this.manager = manager;
         this.cellType = cellType;
         _cell = new GameObject();
         _cell.transform.position = position;
@@ -117,17 +119,36 @@ internal class Cell
         if (!visible) _renderer.enabled = false;
     }
 
-    private static Sprite chooseSprite (CellType ct)
+    private Sprite chooseSprite (CellType ct)
     {
-        return ct switch
+        Sprite s = Resources.Load<Sprite>("Sprites/path");
+
+        switch (ct)
         {
-            CellType.Door => Resources.Load<Sprite>("Sprites/Door"),
-            CellType.Key => Resources.Load<Sprite>("Sprites/key"),
-            CellType.Empty => Resources.Load<Sprite>("Sprites/path"),
-            CellType.Obstacle => Resources.Load<Sprite>("Sprites/obstacle"),
-            CellType.Player => Resources.Load<Sprite>("Sprites/player"),
-            _ => throw new ArgumentOutOfRangeException(nameof(ct), ct, "null")
+            case CellType.Door:
+                s = Resources.Load<Sprite>("Sprites/Door");
+                break;
+            case CellType.Key:
+                s = Resources.Load<Sprite>("Sprites/key");
+                break;
+            case CellType.Empty:
+                s = Resources.Load<Sprite>("Sprites/path");
+                break;
+            case CellType.Obstacle:
+                s = Resources.Load<Sprite>("Sprites/obstacle");
+                break;
+            case CellType.Player:
+                if(manager?._xInput >= 0)
+                {
+                    s = Resources.Load<Sprite>("Sprites/player_right");
+                }
+                else
+                {
+                    s = Resources.Load<Sprite>("Sprites/player");
+                }
+                break;
         };
+        return s;
     }
 
  /*   private static Color TypeToColor(CellType ct)
