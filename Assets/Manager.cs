@@ -95,6 +95,6 @@ public class Manager : MonoBehaviour
         _invisibleGrid.TriggerVisibility();
         _visibleGrid = null;
         _invisibleGrid = null;
-        SceneManager.LoadScene(1);
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 }
